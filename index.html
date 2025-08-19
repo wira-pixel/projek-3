@@ -1,53 +1,118 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Inspection Report</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;margin:0}
+    .card{max-width:1100px;margin:24px auto;background:#fff;border:1px solid #dcdfe6;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+    .header{padding:28px 24px;border-bottom:1px solid #e6e9ef}
+    .title{color:#0d4a87;font-weight:800;font-size:32px;text-align:center;letter-spacing:.5px}
+    .row{display:grid;grid-template-columns:180px 1fr;gap:12px;padding:8px 24px;align-items:center}
+    .row label{font-weight:700}
+    .row input, .row select{width:100%;padding:8px 10px;border:1px solid #cfd6e4;border-radius:6px;background:#eef4ff}
+    .grid{display:grid;grid-template-columns:60px 1.5fr 1.2fr 1.2fr;gap:0;border-top:1px solid #e6e9ef;margin:12px 24px 0}
+    .th,.td{padding:12px;border-right:1px solid #e6e9ef;border-bottom:1px solid #e6e9ef}
+    .th{font-weight:800;background:#f7f8fc}
+    .actions{display:flex;gap:12px;justify-content:flex-end;padding:18px 24px 28px}
+    button{padding:10px 16px;border:0;border-radius:8px;cursor:pointer;font-weight:700}
+    .btn-add{background:#1e88e5;color:#fff}
+    .btn-pdf{background:#1976d2;color:#fff}
+    .side{position:relative;margin:0 24px 16px;background:#fff;border:1px solid #e6e9ef;border-radius:6px}
+    .legend-row{display:grid;grid-template-columns:140px 1fr}
+    .pa{background:#ffd1d1}.pb1{background:#ffe7b1}.pb2{background:#fff9b7}.pc{background:#e7e7ea}
+    .pad{padding:10px 12px;border-bottom:1px solid #e6e9ef}
+    .hidden{display:none}
+  </style>
 </head>
 <body>
-  <h2>INSPECTION REPORT / CONDITION REPORT</h2>
-  <form id="reportForm" enctype="multipart/form-data">
-    <label>Site: <input type="text" name="site"></label><br>
-    <label>Report Date: <input type="date" name="reportDate"></label><br>
-    <label>Kode Unit: <input type="text" name="kodeUnit"></label><br>
-    <label>Hour Meter: <input type="text" name="hourMeter"></label><br>
-    <label>Reported by: <input type="text" name="reportedBy"></label><br>
-    <label>Insp by: <input type="text" name="inspBy"></label><br>
-    <label>Priority: <input type="text" name="priority"></label><br>
-    <label>Description: <input type="text" name="description"></label><br>
-    <label>Condition: <input type="text" name="condition"></label><br>
-    <label>Photo: <input type="file" name="file"></label><br><br>
+  <div class="card">
+    <div class="header"><div class="title">INSPECTION REPORT / CONDITION REPORT</div></div>
 
-    <button type="submit">Submit</button>
-    <button type="button" id="savePdf">Simpan sebagai PDF</button>
-  </form>
+    <!-- LEGEND -->
+    <div class="side">
+      <div class="legend-row pad pa"><b>Priority A</b><div>Stop machine and repair</div></div>
+      <div class="legend-row pad pb1"><b>Priority B1</b><div>Safety issue (stop machine if possible)</div></div>
+      <div class="legend-row pad pb2"><b>Priority B2</b><div>Machine operating with condition (act at opportunity time)</div></div>
+      <div class="legend-row pad pc" style="border-bottom:0"><b>Priority C</b><div>Repair when service or shutdown plan</div></div>
+    </div>
 
-  <p id="result"></p>
+    <!-- ============= FORM ============= -->
+    <form id="reportForm" action="https://script.google.com/macros/s/AKfycbysUW6ginDymhA4OocZl3Iv4XV8ZQnBuNUlWHJ558sAcal7EhonTcqxm00kJpJ3wZU/exec" method="POST" enctype="multipart/form-data">
+      <div class="row"><label>Site:</label><input type="text" name="site" required value=""></div>
+      <div class="row"><label>Report Date:</label><input type="date" name="reportDate" required></div>
+      <div class="row"><label>Kode unit:</label><input type="text" name="kodeUnit" required></div>
+      <div class="row"><label>Hour meter:</label><input type="number" name="hourMeter" required></div>
+      <div class="row"><label>Reported by:</label><input type="text" name="reportedBy" required></div>
+      <div class="row"><label>Insp by:</label><input type="text" name="inspBy" required></div>
+      <div class="row">
+        <label>Priority:</label>
+        <select name="priority" required>
+          <option value="A">A</option>
+          <option value="B1">B1</option>
+          <option value="B2">B2</option>
+          <option value="C">C</option>
+        </select>
+      </div>
 
+      <!-- table header -->
+      <div class="grid" id="tableHead">
+        <div class="th">NO</div>
+        <div class="th">DESCRIPTION / FAILURE</div>
+        <div class="th">CONDITION</div>
+        <div class="th">PHOTO</div>
+      </div>
+      <!-- table body -->
+      <div id="rows"></div>
+
+      <input type="hidden" name="rows" id="rowsCount" value="0" />
+
+      <div class="actions">
+        <button type="button" class="btn-add" id="addRow">Tambah Baris</button>
+        <button type="button" class="btn-pdf" id="savePdf">Simpan sebagai PDF</button>
+        <button type="submit" class="btn-add" style="background:#2e7d32">Kirim ke Sheet</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- html2pdf untuk export PDF client-side -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbysUW6ginDymhA4OocZl3Iv4XV8ZQnBuNUlWHJ558sAcal7EhonTcqxm00kJpJ3wZU/exec";
+    // ====== Dynamic rows (tanpa CORS karena submit form standar) ======
+    const rowsWrap = document.getElementById('rows');
+    const rowsCount = document.getElementById('rowsCount');
+    const addRowBtn = document.getElementById('addRow');
 
-    document.getElementById("reportForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
+    function addRow() {
+      const i = Number(rowsCount.value);
+      const row = document.createElement('div');
+      row.className = 'grid';
+      row.innerHTML = `
+        <div class="td">${i+1}</div>
+        <div class="td"><input type="text" name="desc_${i}" placeholder="DESCRIPTION / FAILURE" required></div>
+        <div class="td"><input type="text" name="cond_${i}" placeholder="CONDITION" required></div>
+        <div class="td"><input type="file" name="photo_${i}" accept="image/*"></div>
+      `;
+      rowsWrap.appendChild(row);
+      rowsCount.value = i + 1;
+    }
 
-      try {
-        const res = await fetch(scriptURL, {
-          method: "POST",
-          body: formData
-        });
-        const data = await res.json();
-        document.getElementById("result").innerText = "✅ Data terkirim. Foto: " + data.url;
-      } catch (err) {
-        document.getElementById("result").innerText = "❌ Gagal: " + err;
-      }
-    });
+    addRowBtn.addEventListener('click', addRow);
+    // tambahkan 1 baris awal
+    addRow();
 
-    // Export ke PDF
-    document.getElementById("savePdf").addEventListener("click", () => {
-      const element = document.getElementById("reportForm");
-      html2pdf().from(element).save("inspection_report.pdf");
+    // ====== Export PDF dari tampilan (client-side) ======
+    document.getElementById('savePdf').addEventListener('click', () => {
+      const el = document.querySelector('.card');
+      const opt = {
+        margin:       10,
+        filename:     'inspection-report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(el).save();
     });
   </script>
 </body>
