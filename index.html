@@ -2,42 +2,48 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Form Input</title>
 </head>
 <body>
-  <h2>Form Data</h2>
-  <form id="dataForm">
+  <h2>Input Data</h2>
+  <form id="myForm">
     <label>Nama:</label><br>
-    <input type="text" id="nama" required><br><br>
-    <label>Nomor HP:</label><br>
-    <input type="text" id="hp" required><br><br>
+    <input type="text" name="nama" required><br><br>
+
+    <label>No HP:</label><br>
+    <input type="text" name="hp" required><br><br>
+
     <button type="submit">Kirim</button>
   </form>
 
   <p id="status"></p>
 
   <script>
-    document.getElementById("dataForm").addEventListener("submit", async function(e) {
+    document.getElementById("myForm").addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const nama = document.getElementById("nama").value;
-      const hp = document.getElementById("hp").value;
+      const formData = {
+        nama: e.target.nama.value,
+        hp: e.target.hp.value
+      };
 
-      try {
-        const response = await fetch("https://sheet-backend.vercel.app/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ nama, hp })
-        });
-
-        const result = await response.json();
-        document.getElementById("status").textContent = result.message;
-      } catch (err) {
-        document.getElementById("status").textContent = "Gagal kirim data!";
+      fetch("https://script.google.com/macros/s/AKfycbysUW6ginDymhA4OocZl3Iv4XV8ZQnBuNUlWHJ558sAcal7EhonTcqxm00kJpJ3wZU/exec", {
+        method: "POST",
+        body: JSON.stringify(formData),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("status").innerText = "✅ Data berhasil dikirim!";
+        e.target.reset();
+      })
+      .catch(err => {
+        document.getElementById("status").innerText = "❌ Gagal mengirim data.";
         console.error(err);
-      }
+      });
     });
   </script>
 </body>
