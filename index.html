@@ -2,49 +2,16 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Form Input</title>
 </head>
 <body>
-  <h2>Input Data</h2>
-  <form id="myForm">
+  <h2>Form Input</h2>
+  <form action="https://script.google.com/macros/s/AKfycbysUW6ginDymhA4OocZl3Iv4XV8ZQnBuNUlWHJ558sAcal7EhonTcqxm00kJpJ3wZU/exec" method="post">
     <label>Nama:</label><br>
     <input type="text" name="nama" required><br><br>
-
     <label>No HP:</label><br>
     <input type="text" name="hp" required><br><br>
-
     <button type="submit">Kirim</button>
   </form>
-
-  <p id="status"></p>
-
-  <script>
-    document.getElementById("myForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const formData = {
-        nama: e.target.nama.value,
-        hp: e.target.hp.value
-      };
-
-      fetch("https://script.google.com/macros/s/AKfycbysUW6ginDymhA4OocZl3Iv4XV8ZQnBuNUlWHJ558sAcal7EhonTcqxm00kJpJ3wZU/exec", {
-        method: "POST",
-        body: JSON.stringify(formData),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById("status").innerText = "✅ Data berhasil dikirim!";
-        e.target.reset();
-      })
-      .catch(err => {
-        document.getElementById("status").innerText = "❌ Gagal mengirim data.";
-        console.error(err);
-      });
-    });
-  </script>
 </body>
 </html>
