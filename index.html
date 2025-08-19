@@ -2,16 +2,53 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Form Input</title>
+  <title>Inspection Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <h2>Form Input</h2>
-  <form action="https://script.google.com/macros/s/AKfycbysUW6ginDymhA4OocZl3Iv4XV8ZQnBuNUlWHJ558sAcal7EhonTcqxm00kJpJ3wZU/exec" method="post">
-    <label>Nama:</label><br>
-    <input type="text" name="nama" required><br><br>
-    <label>No HP:</label><br>
-    <input type="text" name="hp" required><br><br>
-    <button type="submit">Kirim</button>
+  <h2>INSPECTION REPORT / CONDITION REPORT</h2>
+  <form id="reportForm" enctype="multipart/form-data">
+    <label>Site: <input type="text" name="site"></label><br>
+    <label>Report Date: <input type="date" name="reportDate"></label><br>
+    <label>Kode Unit: <input type="text" name="kodeUnit"></label><br>
+    <label>Hour Meter: <input type="text" name="hourMeter"></label><br>
+    <label>Reported by: <input type="text" name="reportedBy"></label><br>
+    <label>Insp by: <input type="text" name="inspBy"></label><br>
+    <label>Priority: <input type="text" name="priority"></label><br>
+    <label>Description: <input type="text" name="description"></label><br>
+    <label>Condition: <input type="text" name="condition"></label><br>
+    <label>Photo: <input type="file" name="file"></label><br><br>
+
+    <button type="submit">Submit</button>
+    <button type="button" id="savePdf">Simpan sebagai PDF</button>
   </form>
+
+  <p id="result"></p>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbysUW6ginDymhA4OocZl3Iv4XV8ZQnBuNUlWHJ558sAcal7EhonTcqxm00kJpJ3wZU/exec";
+
+    document.getElementById("reportForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      try {
+        const res = await fetch(scriptURL, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        document.getElementById("result").innerText = "✅ Data terkirim. Foto: " + data.url;
+      } catch (err) {
+        document.getElementById("result").innerText = "❌ Gagal: " + err;
+      }
+    });
+
+    // Export ke PDF
+    document.getElementById("savePdf").addEventListener("click", () => {
+      const element = document.getElementById("reportForm");
+      html2pdf().from(element).save("inspection_report.pdf");
+    });
+  </script>
 </body>
 </html>
